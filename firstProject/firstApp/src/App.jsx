@@ -14,7 +14,7 @@ const title = 'World'
 
 const App = () => {
   console.log('Rendering App');
-  const stories = [
+  const initialStories = [
     {
       title: 'React',
       url: 'https://reactjs.org/',
@@ -184,7 +184,30 @@ const App = () => {
     }
   ];
 
-  const [searchTerm, setSearchTerm] = React.useState(localStorage.getItem('search') || 'React');
+  const getAsyncStories = () =>
+    new Promise((resolve) =>
+      setTimeout(
+        () => resolve({ data: { stories: initialStories } }), 2000));
+
+  const [stories, setStories] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isError, setIsError] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsLoading(true);
+
+    getAsyncStories().then((result) => {
+      setStories(result.data.stories);
+      setIsLoading(false);
+    })
+    .catch(() => setIsError(true));
+  }, []);
+
+  const handleRemoveStory = item => {
+    setStories(stories.filter(story => item.objectID !== story.objectID));
+  }
+
+  const [searchTerm, setSearchTerm] = React.useState(localStorage.getItem('search') || '');
 
   React.useEffect(() => {
     localStorage.setItem('search', searchTerm)
@@ -194,7 +217,7 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-  const searchedStories = stories.filter(story => 
+  const searchedStories = stories.filter(story =>
     story.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -204,11 +227,21 @@ const App = () => {
       <p>Here are some numbers: {(nums.map(num => <span>{num}, </span>))}</p>
       <p>Here they are squared: {nums.map(num => <span>{num ** 2}, </span>)}</p>
 
-      <Search onSearch={handleSearch} searchTerm={searchTerm}/>
+      <InputWithLabel
+        id="search"
+        value={searchTerm}
+        onInputChange={handleSearch}
+        isFocused
+      >
+        <strong>Search: </strong>
+      </InputWithLabel>
+
+      {isError && <p>Something went wrong ...</p>}
 
       <hr />
-
-      <List list={searchedStories} />
+      {isLoading ? (<p>Loading...</p>) : 
+      (<List list={searchedStories} onRemoveItem={handleRemoveStory} />)
+    }
 
       <hr />
     </div>
@@ -216,31 +249,34 @@ const App = () => {
 }
 
 
-const List = ({list}) => {
+const List = ({ list, onRemoveItem }) => {
   console.log('Rendering List')
   return (
     < ul >
       {list.map(item => (
-        <Item key={item.objectID} item={item} />))}
+        <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />))}
     </ul >
   );
 }
 
-const Item = ({item}) => (
-  <li>
-    <a href={item.url}>{item.title}</a> - {item.author}
-  </li>
-)
+const Item = ({ item, onRemoveItem }) => {
+  return (
+    <li>
+      <a href={item.url}>{item.title}</a> - {item.author}
+      <button type="button" onClick={() => onRemoveItem(item)}>Delete</button>
+    </li>
+  )
+}
 
 
-const Search = ({searchTerm, onSearch}) => {
+const InputWithLabel = ({ id, value, type = "text", onInputChange, isFocused, children }) => {
   console.log('Rendering Search')
 
   return (
-    <div>
-      <label htmlFor="search">Search: </label>
-      <input id="search" type="text" onChange={onSearch} value={searchTerm}/>
-    </div>
+    <>
+      <label htmlFor={id}>{children}</label>
+      <input id={id} type={type} autoFocus={isFocused} onChange={onInputChange} value={value} />
+    </>
   )
 }
 
