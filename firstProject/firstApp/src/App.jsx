@@ -91,26 +91,24 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>My Hacker Stories</h1>
+    <div className='container'>
+      <h1 className='headline-primary'>My Hacker Stories</h1>
 
       <SearchForm searchTerm={searchTerm} onSearchInput={handleSearchInput} onSearchSubmit={handleSearchSubmit} />
 
       {stories.isError && <p>Something went wrong ...</p>}
 
-      <hr />
       {stories.isLoading ? (<p>Loading...</p>) :
         (<List list={stories.data} onRemoveItem={handleRemoveStory} />)
       }
 
-      <hr />
     </div>
   )
 }
 
 const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => {
   return (
-    <form onSubmit={onSearchSubmit}>
+    <form onSubmit={onSearchSubmit} className='search-form'>
       <InputWithLabel
         id="search"
         value={searchTerm}
@@ -123,6 +121,7 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => {
       <button
         type="submit"
         disabled={!searchTerm}
+        className='button button_large'
       >
         Submit
       </button>
@@ -142,9 +141,18 @@ const List = ({ list, onRemoveItem }) => {
 
 const Item = ({ item, onRemoveItem }) => {
   return (
-    <li>
-      <a href={item.url}>{item.title}</a> - {item.author}
-      <button type="button" onClick={() => onRemoveItem(item)}>Delete</button>
+    <li className='item'>
+      <span style={{ width: '40%' }}>
+        <a href={item.url}>{item.title}</a>
+      </span>
+      <span style={{ width: '30%' }}>{item.author}</span>
+      <span style={{ width: '10%' }}>{item.num_comments}</span>
+      <span style={{ width: '10%' }}>{item.points}</span>
+      <span style={{ width: '10%' }}>
+        <button className='button button_small' type="button" onClick={() => onRemoveItem(item)}>
+          Delete
+        </button>
+      </span>
     </li>
   )
 }
@@ -155,8 +163,8 @@ const InputWithLabel = ({ id, value, type = "text", onInputChange, isFocused, ch
 
   return (
     <>
-      <label htmlFor={id}>{children}</label>
-      <input id={id} type={type} autoFocus={isFocused} onChange={onInputChange} value={value} />
+      <label htmlFor={id} className='label'>{children}</label>
+      <input id={id} type={type} autoFocus={isFocused} onChange={onInputChange} value={value} className='input' />
     </>
   )
 }
