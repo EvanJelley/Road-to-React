@@ -5,9 +5,16 @@ import axios from 'axios'
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
-const App = () => {
-  console.log('Rendering App');
+const getSumComments = stories => {
+  console.log('Calculating the sum of comments');
+  return stories.data.reduce(
+    (result, value) => result + value.num_comments,
+    0
+  )
+}
 
+
+const App = () => {
   const storiesReducer = (state, action) => {
     switch (action.type) {
       case 'STORIES_FETCH_INIT':
@@ -75,12 +82,12 @@ const App = () => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  const handleRemoveStory = item => {
+  const handleRemoveStory = React.useCallback(item => {
     dispatchStories({
       type: 'REMOVE_STORY',
       payload: item,
     });
-  }
+  }, []);
 
   React.useEffect(() => {
     localStorage.setItem('search', searchTerm)
@@ -90,9 +97,17 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
+  console.log('Rendering App');
+
+  const sumComments = React.useMemo(() =>
+    getSumComments(stories),
+    [stories]
+  );
+
   return (
     <div className='container'>
       <h1 className='headline-primary'>My Hacker Stories</h1>
+      <p>Total Comments: {sumComments}</p>
 
       <SearchForm searchTerm={searchTerm} onSearchInput={handleSearchInput} onSearchSubmit={handleSearchSubmit} />
 
@@ -129,15 +144,17 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => {
   )
 }
 
-const List = ({ list, onRemoveItem }) => {
-  console.log('Rendering List')
-  return (
-    < ul >
-      {list.map(item => (
-        <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />))}
-    </ul >
-  );
-}
+const List = React.memo(
+  ({ list, onRemoveItem }) => {
+    console.log('Rendering List')
+    return (
+      < ul >
+        {list.map(item => (
+          <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />))}
+      </ul >
+    );
+  }
+);
 
 const Item = ({ item, onRemoveItem }) => {
   return (
@@ -159,8 +176,6 @@ const Item = ({ item, onRemoveItem }) => {
 
 
 const InputWithLabel = ({ id, value, type = "text", onInputChange, isFocused, children }) => {
-  console.log('Rendering Search')
-
   return (
     <>
       <label htmlFor={id} className='label'>{children}</label>
