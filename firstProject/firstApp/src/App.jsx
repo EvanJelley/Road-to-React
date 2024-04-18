@@ -184,4 +184,6 @@ const InputWithLabel = ({ id, value, type = "text", onInputChange, isFocused, ch
   )
 }
 
-export default App
+export default App;
+
+export { SearchForm, InputWithLabel, List, Item};
