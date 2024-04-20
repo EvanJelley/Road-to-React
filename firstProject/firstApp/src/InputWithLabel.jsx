@@ -1,5 +1,7 @@
 /* eslint-disable */
 import * as React from 'react';
+import './App.css';
+
 
 const InputWithLabel = ({
     id,
@@ -19,7 +21,7 @@ const InputWithLabel = ({
   
     return (
       <>
-        <label htmlFor={id}>{children}</label>
+        <label htmlFor={id} className='label'>{children}</label>
         &nbsp;
         <input
           ref={inputRef}
@@ -27,6 +29,7 @@ const InputWithLabel = ({
           type={type}
           value={value}
           onChange={onInputChange}
+          className='input'
         />
       </>
     );

@@ -1,6 +1,10 @@
 /* eslint-disable */
 import * as React from 'react';
 import axios from 'axios';
+import { sortBy } from 'lodash';
+
+import './App.css';
+
 
 import { SearchForm } from './SearchForm';
 import { List } from './List';
@@ -33,6 +37,13 @@ const storiesReducer = (state, action) => {
           (story) => action.payload.objectID !== story.objectID
         ),
       };
+    // case 'STORIES_SORT':
+    //   return {
+    //     ...state,
+    //     data: typeof state.data[0][action.payload] === 'string'
+    //       ? state.data.sort((a, b) => a[action.payload].localeCompare(b[action.payload]))
+    //       : state.data.sort((a, b) => a[action.payload] - b[action.payload])
+    //   }
     default:
       throw new Error();
   }
@@ -104,8 +115,8 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>My Hacker Stories</h1>
+    <div className='container'>
+      <h1 className='headline-primary'>My Hacker Stories</h1>
 
       <SearchForm
         searchTerm={searchTerm}

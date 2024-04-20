@@ -4,4 +4,7 @@ body {
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
         sans-serif;
     text-rendering: optimizeLegibility;
+
+    background: #83a4d4;
+    background: linear-gradient(to left, #b6fbff, #83a4d4);
 }

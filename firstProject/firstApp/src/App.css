@@ -2,9 +2,6 @@
     height: 100vw;
     padding: 20px;
 
-    background: #83a4d4;
-    background: linear-gradient(to left, #b6fbff, #83a4d4);
-
     color: #171212;
 }
 
@@ -32,6 +29,15 @@
     color: inherit;
 }
 
+.list-header {
+    display: flex;
+    border-bottom: 1px solid #171212;
+    margin-bottom: 2rem;
+    font-size: 16px;
+    align-items: baseline;
+    font-weight: bold;
+}
+
 .button {
     background: transparent;
     border: 1px solid #171212;
@@ -52,6 +58,12 @@
 
 .button_large {
     padding: 10px;
+}
+
+.button-header {
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
 }
 
 .search-form {
