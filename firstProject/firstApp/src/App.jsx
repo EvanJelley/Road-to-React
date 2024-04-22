@@ -37,13 +37,6 @@ const storiesReducer = (state, action) => {
           (story) => action.payload.objectID !== story.objectID
         ),
       };
-    // case 'STORIES_SORT':
-    //   return {
-    //     ...state,
-    //     data: typeof state.data[0][action.payload] === 'string'
-    //       ? state.data.sort((a, b) => a[action.payload].localeCompare(b[action.payload]))
-    //       : state.data.sort((a, b) => a[action.payload] - b[action.payload])
-    //   }
     default:
       throw new Error();
   }
@@ -69,9 +62,10 @@ const App = () => {
     'React'
   );
 
-  const [url, setUrl] = React.useState(
-    `${API_ENDPOINT}${searchTerm}`
-  );
+  const [url, setUrl] = React.useState({
+    address: `${API_ENDPOINT}${searchTerm}`,
+    pastSearches: [searchTerm],
+  });
 
   const [stories, dispatchStories] = React.useReducer(
     storiesReducer,
@@ -82,8 +76,8 @@ const App = () => {
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
 
     try {
-      const result = await axios.get(url);
-
+      const result = await axios.get(url.address);
+      console.log(`Past Searches: ${url.pastSearches}`)
       dispatchStories({
         type: 'STORIES_FETCH_SUCCESS',
         payload: result.data.hits,
@@ -109,7 +103,25 @@ const App = () => {
   };
 
   const handleSearchSubmit = (event) => {
-    setUrl(`${API_ENDPOINT}${searchTerm}`);
+    for (let i = 0; i < url.pastSearches.length; i++) {
+      if (url.pastSearches[i] === searchTerm) {
+        let searches = url.pastSearches;
+        searches.splice(i, 1);
+        searches.unshift(searchTerm);
+        setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+        event.preventDefault();
+        return;
+      }
+    }
+    if (url.pastSearches.length < 5) {
+      let searches = url.pastSearches;
+      searches.unshift(searchTerm);
+      setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+    } else {
+      let searches = url.pastSearches.slice(0, 4);
+      searches.unshift(searchTerm);
+      setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+    }
 
     event.preventDefault();
   };
@@ -123,6 +135,18 @@ const App = () => {
         onSearchInput={handleSearchInput}
         onSearchSubmit={handleSearchSubmit}
       />
+
+      <p>Previous Searches:</p>
+      {url.pastSearches.map((search) => (
+        <button
+          key={search}
+          onClick={() => setUrl({ address: `${API_ENDPOINT}${search}`, pastSearches: url.pastSearches })}
+          className='button button_small'
+          style={{ margin: '0 10px' }}
+        >
+          {search}
+        </button>
+      ))}
 
       <hr />
 
