@@ -22,7 +22,8 @@ const storiesReducer = (state, action) => {
         ...state,
         isLoading: false,
         isError: false,
-        data: action.payload,
+        data: action.payload.page === 0 ? action.payload.stories : state.data.concat(action.payload.stories),
+        page: action.payload.page,
       };
     case 'STORIES_FETCH_FAILURE':
       return {
@@ -54,7 +55,9 @@ const useStorageState = (key, initialState) => {
   return [value, setValue];
 };
 
-const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
+const API_BASE = 'https://hn.algolia.com/api/v1';
+const API_SEARCH = '/search?query=';
+const API_PAGE = '&page=';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useStorageState(
@@ -62,14 +65,18 @@ const App = () => {
     'React'
   );
 
-  const [url, setUrl] = React.useState({
-    address: `${API_ENDPOINT}${searchTerm}`,
-    pastSearches: [searchTerm],
-  });
+  const getUrl = (searchTerm, page, searchStore) => {
+    return {
+      address: `${API_BASE}${API_SEARCH}${searchTerm}${API_PAGE}${page}`,
+      pastSearches: searchStore,
+    };
+  };
+
+  const [url, setUrl] = React.useState(() => getUrl(searchTerm, 0, []));
 
   const [stories, dispatchStories] = React.useReducer(
     storiesReducer,
-    { data: [], isLoading: false, isError: false }
+    { data: [], isLoading: false, isError: false, page: 0 }
   );
 
   const handleFetchStories = React.useCallback(async () => {
@@ -77,10 +84,12 @@ const App = () => {
 
     try {
       const result = await axios.get(url.address);
-      console.log(`Past Searches: ${url.pastSearches}`)
       dispatchStories({
         type: 'STORIES_FETCH_SUCCESS',
-        payload: result.data.hits,
+        payload: {
+          stories: result.data.hits,
+          page: result.data.page,
+        },
       });
     } catch {
       dispatchStories({ type: 'STORIES_FETCH_FAILURE' });
@@ -108,7 +117,7 @@ const App = () => {
         let searches = url.pastSearches;
         searches.splice(i, 1);
         searches.unshift(searchTerm);
-        setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+        setUrl(getUrl(searchTerm, 0, searches));
         event.preventDefault();
         return;
       }
@@ -116,15 +125,19 @@ const App = () => {
     if (url.pastSearches.length < 5) {
       let searches = url.pastSearches;
       searches.unshift(searchTerm);
-      setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+      setUrl(getUrl(searchTerm, 0, searches));
     } else {
       let searches = url.pastSearches.slice(0, 4);
       searches.unshift(searchTerm);
-      setUrl({ address: `${API_ENDPOINT}${searchTerm}`, pastSearches: searches });
+      setUrl(getUrl(searchTerm, 0, searches));
     }
 
     event.preventDefault();
   };
+
+  const handleMore = () => {
+    setUrl(getUrl(searchTerm, stories.page + 1, url.pastSearches));
+  }
 
   return (
     <div className='container'>
@@ -135,7 +148,6 @@ const App = () => {
         onSearchInput={handleSearchInput}
         onSearchSubmit={handleSearchSubmit}
       />
-
       <p>Previous Searches:</p>
       {url.pastSearches.map((search) => (
         <button
@@ -152,11 +164,16 @@ const App = () => {
 
       {stories.isError && <p>Something went wrong ...</p>}
 
+      <List list={stories.data} onRemoveItem={handleRemoveStory} />
+
       {stories.isLoading ? (
         <p>Loading ...</p>
       ) : (
-        <List list={stories.data} onRemoveItem={handleRemoveStory} />
+        <button className='button' onClick={handleMore}>
+          More
+        </button>
       )}
+
     </div>
   );
 };
